@@ -15,6 +15,7 @@ This application can **decrypt and encrypt SaveData files** from various games r
 |Dead Rising Deluxe Remaster|2527390|Steam|
 |Dragon's Dogma 2|2054970|Steam|
 |Kunitsu-Gami Path of the Goddess|2510710|Steam|
+|Monster Hunter Stories 3: Twisted Reflection|2852190|Steam|
 |Monster Hunter Wilds|2246340|Steam|
 |Resident Evil 9 Requiem|3764200|Steam|
 
