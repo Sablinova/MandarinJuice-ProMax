@@ -200,6 +200,17 @@ public class MandarinFile(MandarinDeencryptor deencryptor, MandarinFileFlavor ma
         Data = encryptedData;
         IsEncrypted = true;
     }
+
+    /// <summary>
+    /// Retrieves the current state and target mask values based on the decrypted data length and the provided data.
+    /// </summary>
+    /// <param name="state">When this method returns, contains the calculated state value derived from the decrypted data length.</param>
+    /// <param name="targetMask">When this method returns, contains the calculated target mask value based on the encrypted data.</param>
+    public void GetStateAndTargetMask(out ulong state, out ulong targetMask)
+    {
+       state = Deencryptor.CalculateStateForUserId((uint)Footer.DecryptedDataLength);
+       targetMask = MandarinDeencryptor.CalculateTargetMask(Data);
+    }
     
     /// <summary>
     /// Computes a 32-bit Murmur3 hash for the specified sequence of unsigned integers.

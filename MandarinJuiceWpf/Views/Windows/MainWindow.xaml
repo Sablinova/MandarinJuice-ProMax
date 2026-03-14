@@ -101,12 +101,25 @@
                     </Grid.ColumnDefinitions>
                     <!-- Left -->
                     <StackPanel>
-                        <TextBlock Margin="0,0,0,5">
-                        <Run Text="User ID" />
-                        <Bold>
-                            <Run Text="(INPUT)" />
-                        </Bold>
-                        </TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,0,5">
+                                <Run Text="User ID" />
+                                <Bold>
+                                    <Run Text="(INPUT)" />
+                                </Bold>
+                            </TextBlock>
+                            <!-- Brute-force -->
+                            <Button
+                                Padding="3"
+                                FontSize="9"
+                                FontFamily="{StaticResource IconFont}"
+                                d:Content="X"
+                                Content="{Binding ViewModel.KeyIcon}"
+                                ToolTip="Brute-force UserID"
+                                Command="{Binding ViewModel.BruteforceUserIdCommand}"
+                                Margin="10,0,0,5"
+                                Visibility="{Binding ViewModel.SuperUserManager.IsSuperUser, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        </StackPanel>
                         <TextBox x:Name="UserIdInputTextBox" Text="{Binding ViewModel.UserIdInput, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" />
                     </StackPanel>
                     <!-- Interchange -->
@@ -123,10 +136,10 @@
                     <!-- Right -->
                     <StackPanel Grid.Column="2">
                         <TextBlock Margin="0,0,0,5">
-                        <Run Text="User ID" />
-                        <Bold>
-                            <Run Text="(OUTPUT)" />
-                        </Bold>
+                            <Run Text="User ID" />
+                            <Bold>
+                                <Run Text="(OUTPUT)" />
+                            </Bold>
                         </TextBlock>
                         <TextBox Text="{Binding ViewModel.UserIdOutput, UpdateSourceTrigger=LostFocus, Mode=TwoWay}" />
                     </StackPanel>

@@ -44,6 +44,7 @@ public partial class MainWindowViewModel : ObservableValidator
     public static string FolderSymlinkIcon => IconFont.FolderSymlink;
     public static string GithubIcon => IconFont.Github;
     public static string InterchangeIcon => IconFont.Interchange;
+    public static string KeyIcon => IconFont.Key;
     public static string ResignIcon => IconFont.Resign;
     public static string XCircleIcon => IconFont.XCircle;
     #endregion
@@ -379,6 +380,21 @@ public partial class MainWindowViewModel : ObservableValidator
         GamingPlatform.UserIdOutput = UserIdOutput;
         await PerformAction(() => _core.ResignFilesAsync(InputFolderPath, GamingPlatform, _cts), true);
         _cts.Dispose();
+    }
+
+    [RelayCommand]
+    private async Task BruteforceUserId()
+    {
+        if (IsBusy) return;
+        IsBusy = true;
+        IsAbortAllowed = true;
+        _cts = new CancellationTokenSource();
+        var result = await _core.BruteforceUserIdAsync(InputFolderPath, GamingPlatform, _cts);
+        if (result) UserIdInput = GamingPlatform.UserIdInput;
+        SystemSounds.Beep.Play();
+        _cts.Dispose();
+        IsAbortAllowed = false;
+        IsBusy = false;
     }
 
     #endregion

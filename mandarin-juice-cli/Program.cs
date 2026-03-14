@@ -100,6 +100,9 @@ switch (mode)
     case "resign" or "r":
         await ResignAll();
         break;
+    case "bruteforce" or "b":
+        await BruteforceFirst();
+        break;
     default:
         throw new ArgumentException($"Unknown mode: '{mode}'.");
 }
@@ -133,6 +136,7 @@ static void PrintHelp()
                          -m d  Decrypt SaveData files
                          -m e  Encrypt SaveData files
                          -m r  Re-sign SaveData files
+                         -m b  Bruteforce User ID for the first file in the input directory
 
                        Options:
                          -g <game_profile_path>  Path to the Game Profile file
@@ -147,6 +151,7 @@ static void PrintHelp()
                          Decrypt:  {exeName} -m d -g "{gameProfilePath}" -p "{inputPath}" -u {userIdInput}
                          Encrypt:  {exeName} -m e -g "{gameProfilePath}" -p "{inputPath}" -u {userIdOutput}
                          Re-sign:  {exeName} -m r -g "{gameProfilePath}" -p "{inputPath}" -uI {userIdInput} -uO {userIdOutput}
+                         Bruteforce:  {exeName} -m b -g "{gameProfilePath}" -p "{inputPath}"
                        """;
     Console.WriteLine(helpMessage);
 }
@@ -227,6 +232,16 @@ async Task ResignAll()
     gamingPlatform.UserIdOutput = userIdOutput;
     // Re-sign Files
     await core.ResignFilesAsync(inputRootPath, gamingPlatform, cts);
+    cts.Dispose();
+}
+
+async Task BruteforceFirst()
+{
+    var cts = new CancellationTokenSource();
+    var inputRootPath = GetValidatedInputRootPath();
+    LoadGameProfile();
+    // Bruteforce first file in the input directory
+    await core.BruteforceUserIdAsync(inputRootPath, gamingPlatform, cts);
     cts.Dispose();
 }
 

@@ -9,4 +9,7 @@ public interface IGamingPlatform
     void OpenStoreProductPage();
     ulong GetParsedUserIdInput();
     ulong GetParsedUserIdOutput();
+    public ulong ParseUserId(uint userId);
+    public ulong ParseUserId(ulong userId);
+    public ulong ParseUserId(string userId);
 }

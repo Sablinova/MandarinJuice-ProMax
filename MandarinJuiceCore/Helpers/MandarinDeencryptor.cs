@@ -1,5 +1,6 @@
 ﻿using MandarinJuiceCore.Models.DSSS.Mandarin;
 using System.Buffers.Binary;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
@@ -143,6 +144,20 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
     }
 
     /// <summary>
+    /// Fills the specified span with pseudo-random bytes generated using the provided key as the seed.
+    /// </summary>
+    /// <param name="key">A reference to the seed value used for generating pseudo-random bytes. The value is updated after each byte is generated.</param>
+    /// <param name="results">The span to fill with generated pseudo-random bytes. The length of the span determines how many bytes are produced.</param>
+    private static void Splitmixer64(ref ulong key, Span<byte> results)
+    {
+        for (var i = 0; i < results.Length; i++)
+        {
+            Splitmix64(ref key);
+            results[i] = (byte)key;
+        }
+    }
+
+    /// <summary>
     /// Calculates the upper 64 bits of the 128-bit product of two 64-bit unsigned integers.
     /// </summary>
     /// <remarks>Based on: https://gist.github.com/cocowalla/6070a53445e872f2bb24304712a3e1d2.</remarks>
@@ -227,14 +242,7 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
         for (var i = start; i < span.Length; i++)
             span[i] = (byte)random.Next(byte.MaxValue + 1);
     }
-
-    /// <summary>
-    /// Computes the bitwise complement of the specified user identifier.
-    /// </summary>
-    /// <param name="userId">The user identifier to invert.</param>
-    /// <returns>An unsigned 64-bit integer representing the bitwise complement of the input user ID.</returns>
-    private static ulong NotUserId(ulong userId) => ~userId;
-
+    
     /// <summary>
     /// Compares two containers in reverse lexicographical order to determine if <paramref name="containerA"/> is less than <paramref name="containerB"/>.
     /// Starting from the last element, it checks each element pair by pair until a difference is found or all elements have been compared.
@@ -1350,7 +1358,7 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
             var sliceChecksum = CalculateSliceDataChecksum(currentSliceData[..currentSliceDataLength]);
             currentSliceHeaderAsUlongs[^2] = sliceChecksum;
             currentSliceHeaderAsUlongs[^1] = (ulong)remainingBytes;
-            Splitmixer64(ref currentSliceHeaderAsUlongs[^1]);
+            Splitmix64(ref currentSliceHeaderAsUlongs[^1]);
             
             // Encrypt current slice header
             DeencryptSliceHeader(ref state, currentSliceHeader);
@@ -1364,6 +1372,73 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
             remainingBytes -= currentSliceDataLength;
         }
         return encryptedData;
+    }
+
+    #endregion
+
+    #region BRUTEFORCE HELPERS
+
+    /// <summary>
+    /// Converts a read-only span of bytes to a non-negative BigInteger value.
+    /// </summary>
+    /// <param name="bytes">The read-only span of bytes representing the unsigned integer in little-endian order.</param>
+    /// <returns>A BigInteger representing the unsigned integer value of the input bytes.</returns>
+    private static BigInteger ToBigInt(ReadOnlySpan<byte> bytes)
+    {
+        Span<byte> tmp = stackalloc byte[bytes.Length + 1];
+        bytes.CopyTo(tmp);
+        // force unsigned
+        tmp[^1] = 0;
+
+        return new BigInteger(tmp);
+    }
+
+    /// <summary>
+    /// Calculates the target mask value by combining the provided encrypted data with a derived value based on internal private keys.
+    /// </summary>
+    /// <param name="encryptedData">A read-only span of bytes containing the encrypted data. Must be at least 8 bytes in length.</param>
+    /// <returns>A 64-bit unsigned integer representing the computed target mask.</returns>
+    public static ulong CalculateTargetMask(ReadOnlySpan<byte> encryptedData)
+    {
+        // Compute expected X0 = r ^ e mod p
+        var privateKey1AsBytes = MemoryMarshal.AsBytes(PrivateKey1);
+        var privateKey3AsBytes = MemoryMarshal.AsBytes(PrivateKey3);
+        var privateKey1AsBigInt = ToBigInt(privateKey1AsBytes);
+        var privateKey3AsBigInt = ToBigInt(privateKey3AsBytes);
+        var exponent = new BigInteger(0x14);
+        var expectedX0 = BigInteger.ModPow(privateKey3AsBigInt, exponent, privateKey1AsBigInt);
+        // Compute target = x0 ^ c0, where c0 is the first 8 bytes of the encrypted data
+        var expectedX0AsBytes = expectedX0.ToByteArray();
+        var expectedX0AsUlongs = MemoryMarshal.Cast<byte, ulong>(expectedX0AsBytes);
+        var encryptedDataAsUlongs = MemoryMarshal.Cast<byte, ulong>(encryptedData);
+        return encryptedDataAsUlongs[0] ^ expectedX0AsUlongs[0];
+    }
+
+    /// <summary>
+    /// Calculates the state value for a user based on the specified decrypted data length.
+    /// </summary>
+    /// <param name="decryptedDataLength">The length of the decrypted data, in bytes, used to determine the resulting state.</param>
+    /// <returns>A 64-bit unsigned integer representing the calculated state for the given decrypted data length.</returns>
+    public ulong CalculateStateForUserId(uint decryptedDataLength)
+    {
+        var state = MandarinSeed;
+        CalculateSlicesQueue(ref state, decryptedDataLength);
+        return state;
+    }
+
+    /// <summary>
+    /// Attempts to verify whether the specified user identifier, after processing, matches the given target mask.
+    /// </summary>
+    /// <param name="parsedUserId">The user identifier to process and compare against the target mask.</param>
+    /// <param name="targetMask">The mask value to compare with the processed user identifier.</param>
+    /// <returns><see langword="true"/> if the processed user identifier matches the target mask; otherwise, <see langword="false"/>.</returns>
+    public static bool TryParsedUserId(ulong parsedUserId, ulong targetMask)
+    {
+        Span<byte> mask = stackalloc byte[8];
+        var maskAsUlongs = MemoryMarshal.Cast<byte, ulong>(mask);
+        Splitmixer64(ref parsedUserId, 16);
+        Splitmixer64(ref parsedUserId, mask);
+        return maskAsUlongs[0] == targetMask;
     }
 
     #endregion

@@ -15,11 +15,27 @@ public class Steam : IGamingPlatform
 
     public ulong GetParsedUserIdInput() => ParseUserId(UserIdInput);
     public ulong GetParsedUserIdOutput() => ParseUserId(UserIdOutput);
-    private ulong ParseUserId(string userId)
+
+    public ulong ParseUserId(string userId) 
+        => ParseUserIdInternal(s => s.Set(userId));
+
+    public ulong ParseUserId(uint userId) 
+        => ParseUserIdInternal(s => s.Set(userId));
+
+    public ulong ParseUserId(ulong userId) 
+        => ParseUserIdInternal(s => s.Set(userId));
+
+    private ulong ParseUserIdInternal(Func<SteamId, bool> setter)
     {
         var steamId = new SteamId();
-        var result = steamId.Set(userId);
-        if (!result) throw new FormatException("The provided User ID is not a valid Steam ID.");
+        var result = setter(steamId);
+        return !result
+            ? throw new FormatException("The provided User ID is not a valid Steam ID.")
+            : ParseUserIdInternal(steamId);
+    }
+
+    private ulong ParseUserIdInternal(SteamId steamId)
+    {
         return ParseVariant switch
         {
             0 => steamId.GetSteamId64(),

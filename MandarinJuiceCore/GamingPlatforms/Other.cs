@@ -12,6 +12,10 @@ public class Other : IGamingPlatform
         // do nothing;
     }
 
-    public ulong GetParsedUserIdInput() => Convert.ToUInt64(UserIdInput);
-    public ulong GetParsedUserIdOutput() => Convert.ToUInt64(UserIdOutput);
+    public ulong GetParsedUserIdInput() => ParseUserId(UserIdInput);
+    public ulong GetParsedUserIdOutput() => ParseUserId(UserIdOutput);
+    
+    public ulong ParseUserId(string userId) => Convert.ToUInt64(userId);
+    public ulong ParseUserId(uint userId) => userId;
+    public ulong ParseUserId(ulong userId) => userId;
 }
