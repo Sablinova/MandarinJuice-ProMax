@@ -193,7 +193,12 @@ public class MandarinFile(MandarinDeencryptor deencryptor, MandarinFileFlavor ma
     {
         // Compress Data if needed
         var encryptedData = Data;
-        if (IsCompressionAllowed()) encryptedData = CompressData(encryptedData);
+        if (IsCompressionAllowed())
+        {
+            encryptedData = CompressData(encryptedData);
+            // Update footer decrypted data length to the compressed data length
+            Footer.DecryptedDataLength = encryptedData.Length;
+        }
         // Encrypt Data
         encryptedData = Deencryptor.EncryptData(encryptedData, userId);
         // Update Data and encryption state
