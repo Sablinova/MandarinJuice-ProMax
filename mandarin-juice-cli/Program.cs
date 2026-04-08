@@ -81,11 +81,12 @@ Console.WriteLine(breakLine);
 if (arguments.Count == 0 || arguments.ContainsKey("-h"))
 {
     PrintHelp();
+    ConsoleHelper.PressAnyKeyToExit();
     return;
 }
 
-// Optional argument: isVerbose
-var isVerbose = arguments.ContainsKey("-v");
+// Optional argument: doNotWait
+var doNotWait = arguments.ContainsKey("-q");
 
 // Get MODE
 arguments.TryGetValue("-m", out var mode);
@@ -110,12 +111,7 @@ switch (mode)
 // EXIT the application
 Console.WriteLine(breakLine); // print a break line
 ConsoleHelper.SayGoodbye(breakLine);
-#if DEBUG
-ConsoleHelper.PressAnyKeyToExit();
-#else
-if (isVerbose) ConsoleHelper.PressAnyKeyToExit();
-#endif
-
+if (!doNotWait) ConsoleHelper.PressAnyKeyToExit();
 return;
 
 #endregion
@@ -144,7 +140,7 @@ static void PrintHelp()
                          -u <user_id>            User ID (used in decrypt/encrypt modes)
                          -uI <old_id>            Original User ID (used in re-sign mode)
                          -uO <new_id>            New User ID (used in re-sign mode)
-                         -v                      Verbose output
+                         -q                      Don't wait for user input to exit after operation completes (auto-close)
                          -h                      Show this help message
 
                        Examples:
