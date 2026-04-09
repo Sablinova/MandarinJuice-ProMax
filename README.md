@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blueviolet.svg)](https://opensource.org/license/mit)
-[![Release Version](https://img.shields.io/github/v/tag/mi5hmash/MandarinJuice?label=Version)](https://github.com/mi5hmash/MandarinJuice/releases/latest)
+[![Release Version](https://img.shields.io/github/v/tag/Sablinova/MandarinJuice-ProMax?label=Version)](https://github.com/Sablinova/MandarinJuice-ProMax/releases/latest)
 [![Visual Studio 2026](https://custom-icon-badges.demolab.com/badge/Visual%20Studio%202026-F0ECF8.svg?&logo=visual-studio-26)](https://visualstudio.microsoft.com/)
 [![.NET10](https://img.shields.io/badge/.NET%2010-512BD4?logo=dotnet&logoColor=fff)](#)
 
@@ -8,10 +8,11 @@
 
 ## 🚀 Sablinova ProMax Fork Improvements
 
-This fork of MandarinJuice (ProMax) is heavily optimized for use as a CLI backend for Discord bots, specifically resolving execution timeout issues on low-resource VPS environments.
+This is a heavily optimized fork of [mi5hmash/MandarinJuice](https://github.com/mi5hmash/MandarinJuice). It is designed for use as a CLI backend for Discord bots, specifically resolving execution timeout issues on low-resource VPS environments.
 
 ### Differences from the original MandarinJuice:
 - **Extreme Bruteforce Optimization:** The original `MandarinJuice` used a slow looping `Splitmix64` hash generation within `TryParsedUserId` that pegged the CPU at 100% for over 1 hour to run against Steam64 IDs, severely starving VPS resources. This fork heavily optimizes it by completely unrolling the 16 hashing rounds and byte-extraction loops with early-exits. This eliminates the prolonged extreme CPU overhead, dropping the time required to bruteforce Resident Evil 9 User IDs to just ~58 seconds on target hardware. This prevents server resource exhaustion and allows the tool to run efficiently within Discord bot interaction limits.
+- **Multithreading Loop Optimization:** The original CLI tool calculated progress UI updates inside the main bruteforce `Parallel.For` loop (using modulo operations and thread-blocking `Interlocked.Add` calls millions of times per second). This fork completely rips out the progress tracking from the hot inner loop, shifting it to only report when a thread partition fully completes. This removes massive synchronization locks and branching overhead.
 - **JSON Serialization Fixes:** Building the original tool with native assembly trimming enabled (`PublishTrimmed=true`) broke JSON reflection, leading to `System.InvalidOperationException` errors when loading JSON game profiles. The GitHub Actions build process was updated in this fork to disable assembly trimming (`PublishTrimmed=false`) for self-contained binaries, resolving the crashes.
 - **Auto-Exit by Default:** The original CLI tool paused and waited for a user key press after completion. This fork was updated to automatically exit for seamless pipeline execution without hanging indefinitely on headless environments.
 
@@ -52,7 +53,7 @@ You’ve been warned. Now that you fully understand the possible consequences, y
 
 On Windows, you can use either the CLI or the GUI version, but in this chapter I’ll describe the latter.
 
-<img src="https://github.com/mi5hmash/MandarinJuice/blob/main/.resources/images/MainWindow-v1.png" alt="MainWindow-v1"/>
+<img src="https://github.com/Sablinova/MandarinJuice-ProMax/blob/main/.resources/images/MainWindow-v1.png" alt="MainWindow-v1"/>
 
 #### 1. Selecting the Game Profile
 Game Profile is a configuration file that stores the settings for a specific game.
@@ -114,7 +115,7 @@ Button **(14)** uses a brute‑force approach to find the correct UserID for sou
 ## [CLI] - 🪟 Windows | 🐧 Linux | 🍎 macOS
 
 ```plaintext
-Usage: .\mandarin-juice-cli.exe -m <mode> [options]
+Usage: .\mandarin-juice-promax -m <mode> [options]
 
 Modes:
   -m d  Decrypt SaveData files
@@ -135,26 +136,26 @@ Options:
 ### Examples
 #### Decrypt
 ```bash
-.\mandarin-juice-cli.exe -m d -g ".\game_profile.bin" -p ".\InputDirectory" -u 76561197960265729
+.\mandarin-juice-promax -m d -g ".\game_profile.bin" -p ".\InputDirectory" -u 76561197960265729
 ```
 #### Encrypt
 ```bash
-.\mandarin-juice-cli.exe -m e -g ".\game_profile.bin" -p ".\InputDirectory" -u 76561197960265730
+.\mandarin-juice-promax -m e -g ".\game_profile.bin" -p ".\InputDirectory" -u 76561197960265730
 ```
 #### Re-sign
 ```bash
-.\mandarin-juice-cli.exe -m r -g ".\game_profile.bin" -p ".\InputDirectory" -uI 76561197960265729 -uO 76561197960265730
+.\mandarin-juice-promax -m r -g ".\game_profile.bin" -p ".\InputDirectory" -uI 76561197960265729 -uO 76561197960265730
 ```
 #### Bruteforce
 ```bash
-.\mandarin-juice-cli.exe -m b -g ".\game_profile.bin" -p ".\InputDirectory"
+.\mandarin-juice-promax -m b -g ".\game_profile.bin" -p ".\InputDirectory"
 ```
 
 > [!NOTE]
 > Modified files are being placed in a newly created folder within the ***"MandarinJuice/_OUTPUT/"*** folder.
 
 # :fire: Issues
-All the problems I've encountered during my tests have been fixed on the go. If you find any other issues (which I hope you won't) feel free to report them [there](https://github.com/mi5hmash/MandarinJuice/issues).
+All the problems I've encountered during my tests have been fixed on the go. If you find any other issues (which I hope you won't) feel free to report them [there](https://github.com/Sablinova/MandarinJuice-ProMax/issues).
 
 > [!TIP]
 > This application creates a log file that may be helpful in troubleshooting.
