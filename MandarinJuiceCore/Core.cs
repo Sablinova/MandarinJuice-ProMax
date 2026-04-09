@@ -414,13 +414,8 @@ public class Core(SimpleLogger logger, ProgressReporter progressReporter)
         var result = false;
         try
         {
-            Parallel.For(0, uint.MaxValue, po, (ctr, loopState) =>
+            Parallel.For(0, uint.MaxValue, po, () => 0u, (ctr, loopState, localLap) =>
             {
-                if (lap % 10_000_000 == 0)
-                {
-                    var progress = (double)lap / uint.MaxValue;
-                    progressReporter.Report($"[{progress:P2}] Brute-forcing: {fileName}", (int)(progress * 100));
-                }
                 var parsedUserId = gamingPlatform.ParseUserId((uint)ctr) + state;
                 var res = MandarinDeencryptor.TryParsedUserId(parsedUserId, targetMask);
                 if (res)
@@ -429,7 +424,13 @@ public class Core(SimpleLogger logger, ProgressReporter progressReporter)
                     gamingPlatform.UserIdInput = ctr.ToString();
                     loopState.Stop();
                 }
-                Interlocked.Increment(ref lap);
+                return localLap + 1;
+            },
+            localLap =>
+            {
+                var totalLap = Interlocked.Add(ref lap, localLap);
+                var progress = (double)totalLap / uint.MaxValue;
+                progressReporter.Report($"[{progress:P2}] Brute-forcing: {fileName}", (int)(progress * 100));
             });
             result = uid is not null;
             logger.LogInfo(result ? $"Found UserID: {uid}." : "UserID not found.");
