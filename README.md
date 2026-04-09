@@ -6,6 +6,15 @@
 > [!IMPORTANT]
 > **This software is free and open source. If someone asks you to pay for it, it's likely a scam.**
 
+## 🚀 Sablinova ProMax Fork Improvements
+
+This fork of MandarinJuice (ProMax) is heavily optimized for use as a CLI backend for Discord bots, specifically resolving execution timeout issues on low-resource VPS environments.
+
+### Key Enhancements:
+- **Extreme Bruteforce Optimization:** The `TryParsedUserId` function in `MandarinDeencryptor` has been heavily optimized by completely unrolling the `Splitmix64` hashing rounds and byte-extraction loops. This drastically reduces CPU overhead, dropping the time required to bruteforce Resident Evil 9 User IDs from >2 minutes to ~58 seconds on target hardware. This optimization allows the tool to run efficiently within the 15-minute Discord bot interaction limits/timeouts.
+- **JSON Serialization Fixes:** The GitHub Actions build process was updated to disable assembly trimming (`PublishTrimmed=false`) for self-contained linux/mac/windows binaries. This completely resolves the `System.InvalidOperationException` reflection crashes that occurred when loading JSON game profiles in the original trimmed releases.
+- **Auto-Exit by Default:** Designed for seamless pipeline execution without hanging on user input prompts.
+
 # 🍊 MandarinJuice - What is it :interrobang:
 This application can **decrypt and encrypt SaveData files** from various games running on RE Engine. It can also **re-sign these SaveData files** with your own SteamID to **use anyone’s SaveData on your Steam Account**.
 
