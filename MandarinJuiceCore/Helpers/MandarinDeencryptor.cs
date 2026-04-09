@@ -1434,11 +1434,72 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
     /// <returns><see langword="true"/> if the processed user identifier matches the target mask; otherwise, <see langword="false"/>.</returns>
     public static bool TryParsedUserId(ulong parsedUserId, ulong targetMask)
     {
-        Span<byte> mask = stackalloc byte[8];
-        var maskAsUlongs = MemoryMarshal.Cast<byte, ulong>(mask);
-        Splitmixer64(ref parsedUserId, 16);
-        Splitmixer64(ref parsedUserId, mask);
-        return maskAsUlongs[0] == targetMask;
+        ulong state = parsedUserId;
+
+        // 16 rounds of Splitmix64
+        for (int i = 0; i < 16; i++)
+        {
+            state += 0x9E3779B97F4A7C15;
+            state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+            state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+            state ^= state >> 0x1F;
+        }
+
+        // Round 1
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)targetMask) return false;
+
+        // Round 2
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)(targetMask >> 8)) return false;
+
+        // Round 3
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)(targetMask >> 16)) return false;
+
+        // Round 4
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)(targetMask >> 24)) return false;
+
+        // Round 5
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)(targetMask >> 32)) return false;
+
+        // Round 6
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)(targetMask >> 40)) return false;
+
+        // Round 7
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        if ((byte)state != (byte)(targetMask >> 48)) return false;
+
+        // Round 8
+        state += 0x9E3779B97F4A7C15;
+        state = (state ^ (state >> 0x1E)) * 0xBF58476D1CE4E5B9;
+        state = (state ^ (state >> 0x1B)) * 0x94D049BB133111EB;
+        state ^= state >> 0x1F;
+        return (byte)state == (byte)(targetMask >> 56);
     }
 
     #endregion
