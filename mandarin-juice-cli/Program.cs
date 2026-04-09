@@ -16,7 +16,7 @@ using Mi5hmasH.Logger.Providers;
 const string breakLine = "---";
 
 // Initialize APP_INFO
-var appInfo = new MyAppInfo("mandarin-juice-cli");
+var appInfo = new MyAppInfo("mandarin-juice-promax");
 
 // Initialize LOGGER
 var logger = new SimpleLogger
@@ -86,7 +86,7 @@ if (arguments.Count == 0 || arguments.ContainsKey("-h"))
 }
 
 // Optional argument: doNotWait
-var doNotWait = arguments.ContainsKey("-q");
+var doNotWait = true;
 
 // Get MODE
 arguments.TryGetValue("-m", out var mode);

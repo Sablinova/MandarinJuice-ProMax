@@ -20,7 +20,28 @@ public class Steam : IGamingPlatform
         => ParseUserIdInternal(s => s.Set(userId));
 
     public ulong ParseUserId(uint userId) 
-        => ParseUserIdInternal(s => s.Set(userId));
+    {
+        ulong steamId64 = 0x0110000100000000UL | userId;
+        
+        switch (ParseVariant)
+        {
+            case 0: return steamId64;
+            case 1: return ~((ulong)userId) | 0xFFFFFFFF00000000UL;
+            case 2: return ~steamId64;
+            case 3: 
+                ulong notSteamId = steamId64 ^ 0x1A3B5C7DD0C2B4A8;
+                ulong obfuscated = ((notSteamId >> 32) & 0xFF) |
+                       (((notSteamId >> 40) & 0xFF) << 8) |
+                       (((notSteamId >> 48) & 0xFF) << 16) |
+                       (((notSteamId >> 56) & 0xFF) << 24) |
+                       ((notSteamId & 0xFF) << 32) |
+                       (((notSteamId >> 8) & 0xFF) << 40) |
+                       (((notSteamId >> 16) & 0xFF) << 48) |
+                       (((notSteamId >> 24) & 0xFF) << 56);
+                return ~obfuscated;
+            default: throw new NotSupportedException($"The Steam ID variant '{ParseVariant}' is not supported.");
+        }
+    }
 
     public ulong ParseUserId(ulong userId) 
         => ParseUserIdInternal(s => s.Set(userId));
@@ -39,7 +60,7 @@ public class Steam : IGamingPlatform
         return ParseVariant switch
         {
             0 => steamId.GetSteamId64(),
-            1 => ~steamId.AccountId | 0xFFFFFFFF00000000,
+            1 => ~steamId.AccountId | 0xFFFFFFFF00000000UL,
             2 => ~steamId.GetSteamId64(),
             3 => ~GetObfuscatedSteamId64(steamId),
             _ => throw new NotSupportedException($"The Steam ID variant '{ParseVariant}' is not supported.")
