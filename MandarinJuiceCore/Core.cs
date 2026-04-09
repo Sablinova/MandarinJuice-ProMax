@@ -405,6 +405,31 @@ public class Core(SimpleLogger logger, ProgressReporter progressReporter)
         }
         // Get state and target mask
         mandarinFile.GetStateAndTargetMask(out var state, out var targetMask);
+
+        // Try known IDs first if provided
+        if (!string.IsNullOrWhiteSpace(gamingPlatform.UserIdInput))
+        {
+            var knownIds = gamingPlatform.UserIdInput.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (knownIds.Length > 0)
+            {
+                logger.LogInfo($"Testing {knownIds.Length} known User IDs...");
+                foreach (var knownId in knownIds)
+                {
+                    try
+                    {
+                        var parsedUserId = gamingPlatform.ParseUserId(knownId.Trim()) + state;
+                        if (MandarinDeencryptor.TryParsedUserId(parsedUserId, targetMask))
+                        {
+                            gamingPlatform.UserIdInput = knownId.Trim();
+                            logger.LogInfo($"Found UserID: {knownId.Trim()} (From known cache).");
+                            return true;
+                        }
+                    }
+                    catch { /* Ignore invalid known IDs */ }
+                }
+            }
+        }
+
         // Setup parallel options
         var po = GetParallelOptions(cts);
         // Bruteforce user ID

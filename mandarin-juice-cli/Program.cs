@@ -234,8 +234,14 @@ async Task ResignAll()
 async Task BruteforceFirst()
 {
     var cts = new CancellationTokenSource();
+    arguments.TryGetValue("-u", out var knownIds);
     var inputRootPath = GetValidatedInputRootPath();
     LoadGameProfile();
+    
+    // Optional: pass known IDs via -u flag to test before full bruteforce
+    if (!string.IsNullOrEmpty(knownIds))
+        gamingPlatform.UserIdInput = knownIds;
+        
     // Bruteforce first file in the input directory
     await core.BruteforceUserIdAsync(inputRootPath, gamingPlatform, cts);
     cts.Dispose();
