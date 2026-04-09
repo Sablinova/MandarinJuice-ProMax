@@ -10,10 +10,10 @@
 
 This fork of MandarinJuice (ProMax) is heavily optimized for use as a CLI backend for Discord bots, specifically resolving execution timeout issues on low-resource VPS environments.
 
-### Key Enhancements:
-- **Extreme Bruteforce Optimization:** The `TryParsedUserId` function in `MandarinDeencryptor` has been heavily optimized by completely unrolling the `Splitmix64` hashing rounds and byte-extraction loops. This drastically reduces CPU overhead, dropping the time required to bruteforce Resident Evil 9 User IDs from >2 minutes to ~58 seconds on target hardware. This optimization allows the tool to run efficiently within the 15-minute Discord bot interaction limits/timeouts.
-- **JSON Serialization Fixes:** The GitHub Actions build process was updated to disable assembly trimming (`PublishTrimmed=false`) for self-contained linux/mac/windows binaries. This completely resolves the `System.InvalidOperationException` reflection crashes that occurred when loading JSON game profiles in the original trimmed releases.
-- **Auto-Exit by Default:** Designed for seamless pipeline execution without hanging on user input prompts.
+### Differences from the original MandarinJuice:
+- **Extreme Bruteforce Optimization:** The original `MandarinJuice` used a slow looping `Splitmix64` hash generation within `TryParsedUserId` that could take more than 2-3 minutes to run against Steam64 IDs. This fork heavily optimizes it by completely unrolling the 16 hashing rounds and byte-extraction loops. This drastically reduces CPU overhead, dropping the time required to bruteforce Resident Evil 9 User IDs to ~58 seconds on target hardware. This optimization allows the tool to run efficiently within the 15-minute Discord bot interaction limits/timeouts.
+- **JSON Serialization Fixes:** Building the original tool with native assembly trimming enabled (`PublishTrimmed=true`) broke JSON reflection, leading to `System.InvalidOperationException` errors when loading JSON game profiles. The GitHub Actions build process was updated in this fork to disable assembly trimming (`PublishTrimmed=false`) for self-contained binaries, resolving the crashes.
+- **Auto-Exit by Default:** The original CLI tool paused and waited for a user key press after completion. This fork was updated to automatically exit for seamless pipeline execution without hanging indefinitely on headless environments.
 
 # 🍊 MandarinJuice - What is it :interrobang:
 This application can **decrypt and encrypt SaveData files** from various games running on RE Engine. It can also **re-sign these SaveData files** with your own SteamID to **use anyone’s SaveData on your Steam Account**.
