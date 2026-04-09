@@ -16,7 +16,7 @@ using Mi5hmasH.Logger.Providers;
 const string breakLine = "---";
 
 // Initialize APP_INFO
-var appInfo = new MyAppInfo("mandarin-juice-promax");
+var appInfo = new MyAppInfo("MandarinJuice ProMax (Sablinova fork)");
 
 // Initialize LOGGER
 var logger = new SimpleLogger

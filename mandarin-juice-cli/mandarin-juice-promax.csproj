@@ -11,6 +11,8 @@
 		<FileVersion>$(AssemblyVersion)</FileVersion>
 		<Version>$(AssemblyVersion)</Version>
 		<Authors>Mi5hmasH</Authors>
+		<Product>MandarinJuice ProMax (Sablinova fork)</Product>
+		<AssemblyTitle>MandarinJuice ProMax (Sablinova fork)</AssemblyTitle>
 		<Company>$(Authors)</Company>
 		<Copyright>$(Authors) © $([System.DateTime]::UtcNow.Year)</Copyright>
 		<PackageProjectUrl>https://github.com/mi5hmash/MandarinJuice</PackageProjectUrl>
