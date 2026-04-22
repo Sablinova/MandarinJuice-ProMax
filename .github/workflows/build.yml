@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rid: [linux-x64, win-x64, osx-x64]
+        rid: [linux-x64, linux-arm64, win-x64, osx-x64]
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +40,8 @@ jobs:
           cd publish-${{ matrix.rid }}
           if [ "${{ matrix.rid }}" = "linux-x64" ]; then
             zip -r ../mandarin-juice-promax.zip ./*
+          elif [ "${{ matrix.rid }}" = "linux-arm64" ]; then
+            zip -r ../mandarin-juice-promax-linux-arm64.zip ./*
           else
             zip -r ../mandarin-juice-promax-${{ matrix.rid }}.zip ./*
           fi
@@ -51,6 +53,8 @@ jobs:
         run: |
           if [ "${{ matrix.rid }}" = "linux-x64" ]; then
             gh release upload ${{ github.event.inputs.release_tag }} mandarin-juice-promax.zip --clobber
+          elif [ "${{ matrix.rid }}" = "linux-arm64" ]; then
+            gh release upload ${{ github.event.inputs.release_tag }} mandarin-juice-promax-linux-arm64.zip --clobber
           else
             gh release upload ${{ github.event.inputs.release_tag }} mandarin-juice-promax-${{ matrix.rid }}.zip --clobber
           fi
@@ -62,6 +66,8 @@ jobs:
         run: |
           if [ "${{ matrix.rid }}" = "linux-x64" ]; then
             gh release upload ${{ github.ref_name }} mandarin-juice-promax.zip --clobber
+          elif [ "${{ matrix.rid }}" = "linux-arm64" ]; then
+            gh release upload ${{ github.ref_name }} mandarin-juice-promax-linux-arm64.zip --clobber
           else
             gh release upload ${{ github.ref_name }} mandarin-juice-promax-${{ matrix.rid }}.zip --clobber
           fi
