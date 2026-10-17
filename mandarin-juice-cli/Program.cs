@@ -75,6 +75,8 @@ Console.WriteLine(breakLine);
 
 #endregion
 
+#region MAIN
+
 // Optional argument: doNotWait (default to true for headless bot execution, allow -w to wait)
 var doNotWait = !arguments.ContainsKey("-w");
 
