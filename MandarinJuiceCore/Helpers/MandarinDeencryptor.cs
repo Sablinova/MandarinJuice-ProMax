@@ -1,4 +1,4 @@
-﻿using MandarinJuiceCore.Models.DSSS.Mandarin;
+using MandarinJuiceCore.Models.DSSS.Mandarin;
 using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -943,7 +943,7 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
     /// </summary>
     /// <param name="sliceData">The read-only span of bytes representing the data to compute the checksum for.</param>
     /// <returns>A 64-bit unsigned integer representing the computed checksum value for the provided data slice.</returns>
-    private static ulong CalculateSliceDataChecksum(ReadOnlySpan<byte> sliceData)
+    public static ulong CalculateSliceDataChecksum(ReadOnlySpan<byte> sliceData)
     {
         const byte shift = 0x2F;
         const byte rotation0 = 0x12;
@@ -1001,8 +1001,7 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
 
                 // Mix combos with data from the other batches
                 const byte batchSizeInUlongs = 0x8;
-                var laps = sliceDataAsUlongs.Length / batchSizeInUlongs;
-                laps -= sliceDataAsUlongs.Length % batchSizeInUlongs == 0 ? 1 : 0;
+                var laps = (contentLength - 1) / 64;
                 for (var i = 0; i < laps; i++)
                 {
                     var position = i * batchSizeInUlongs;
@@ -1092,7 +1091,7 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
                 comboC = multiplier * ((comboB >> shift) ^ comboA ^ comboB);
                 checksum = ((comboC >> shift) ^ comboC) * multiplier;
                 break;
-            case > 8:
+            case >= 8:
                 batchSizeInBytes = 8;
                 multiplier = (ulong)contentLength * 2 + salt1;
                 // Create combos from the last batch
@@ -1104,7 +1103,7 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
                 comboD = multiplier * ((comboC >> shift) ^ comboC ^ comboB);
                 checksum = ((comboD >> shift) ^ comboD) * multiplier;
                 break;
-            case > 4:
+            case >= 4:
                 batchSizeInBytes = 4;
                 multiplier = (ulong)contentLength * 2 + salt1;
                 var sliceDataAsUints = MemoryMarshal.Cast<byte, uint>(sliceData);
@@ -1191,8 +1190,10 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
         for (var i = 0; i < encryptionKey.Length; i++)
         {
             var position = i * 2 * HeaderDataKeySizeInUlongs;
+            localContainerA.Clear();
             headerData.Slice(position, HeaderDataKeySizeInUlongs).CopyTo(localContainerA);
             Limegator(localContainerA, localContainerB, localContainerC);
+            localContainerD.Clear();
             headerData.Slice(position + HeaderDataKeySizeInUlongs, HeaderDataKeySizeInUlongs).CopyTo(localContainerD);
             Limeghetti(localContainerD, localContainerA);
             encryptionKey[i] = localContainerD[0];
@@ -1372,6 +1373,49 @@ public class MandarinDeencryptor(ulong mandarinSeed = 0)
             remainingBytes -= currentSliceDataLength;
         }
         return encryptedData;
+    }
+
+    /// <summary>
+    /// Computes a 32-bit Murmur3 hash for the specified sequence of unsigned integers.
+    /// </summary>
+    /// <param name="data">The input data to hash, represented as a read-only span of 32-bit unsigned integers.</param>
+    /// <param name="seed">An optional seed value to initialize the hash computation. Using different seeds produces different hash results for the same input data.</param>
+    /// <returns>A 32-bit unsigned integer containing the computed Murmur3 hash of the input data.</returns>
+    public static uint Murmur3_32(ReadOnlySpan<uint> data, uint seed = 0)
+    {
+        const uint hash0 = 0x1B873593;
+        const uint hash1 = 0xCC9E2D51;
+        const uint hash2 = 0x052250EC;
+        const uint hash3 = 0xC2B2AE35;
+        const uint hash4 = 0x85EBCA6B;
+
+        const byte rotation1 = 0xD;
+        const byte rotation2 = 0xF;
+        const byte shift1 = 0x10;
+
+        var lengthInBytes = data.Length * sizeof(uint);
+
+        foreach (var e in data)
+            seed = 5 * (uint.RotateLeft((hash0 * uint.RotateLeft(hash1 * e, rotation2)) ^ seed, rotation1) - hash2);
+
+        uint mod0 = 0;
+        switch (lengthInBytes & 3)
+        {
+            case 3:
+                mod0 = data[2] << shift1;
+                goto case 2;
+            case 2:
+                mod0 ^= data[1] << 8;
+                goto case 1;
+            case 1:
+                seed ^= hash0 * uint.RotateLeft(hash1 * (mod0 ^ data[0]), rotation2);
+                break;
+        }
+
+        var basis = (uint)(lengthInBytes ^ seed);
+        var hiWordOfBasis = (basis >> shift1) & 0xFFFF;
+
+        return (hash3 * ((hash4 * (basis ^ hiWordOfBasis)) ^ ((hash4 * (basis ^ hiWordOfBasis)) >> rotation1))) ^ ((hash3 * ((hash4 * (basis ^ hiWordOfBasis)) ^ ((hash4 * (basis ^ hiWordOfBasis)) >> rotation1))) >> shift1);
     }
 
     #endregion

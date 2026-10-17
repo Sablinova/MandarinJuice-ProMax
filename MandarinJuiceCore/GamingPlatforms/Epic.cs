@@ -1,4 +1,7 @@
-﻿using MandarinJuiceCore.Infrastructure;
+using System.Runtime.InteropServices;
+using MandarinJuiceCore.Helpers;
+using MandarinJuiceCore.Infrastructure;
+using Mi5hmasH.GameLaunchers.Epic.Types;
 
 namespace MandarinJuiceCore.GamingPlatforms;
 
@@ -15,21 +18,53 @@ public class Epic : IGamingPlatform
     public ulong GetParsedUserIdInput() => ParseUserId(UserIdInput);
     public ulong GetParsedUserIdOutput() => ParseUserId(UserIdOutput);
 
-    public ulong ParseUserId(string userId) 
-        => ParseUserIdInternal(uint.Parse(userId));
-
-    public ulong ParseUserId(uint userId) 
-        => ParseUserIdInternal(userId);
-
-    public ulong ParseUserId(ulong userId)
-        => ParseUserIdInternal((uint)userId);
-
-    private ulong ParseUserIdInternal(uint userId)
+    public ulong ParseUserId(string userId)
     {
-        return ParseVariant switch
+        var epicId = new EpicId();
+        return !epicId.TrySetEpicId(userId) 
+            ? throw new FormatException("The provided User ID is not a valid Epic ID.") 
+            : ParseUserIdInternal(epicId);
+    }
+
+    public ulong ParseUserId(uint id) => ParseUserIdInternal(id);
+    public ulong ParseUserId(ulong id) => ParseUserIdInternal(id);
+
+    private ulong ParseUserIdInternal(EpicId epicId)
+    {
+        var (uintHash, ulongHash) = ComputeHashes(epicId);
+        return ApplyVariant(uintHash, ulongHash, ParseVariant);
+    }
+
+    private ulong ParseUserIdInternal(uint id) 
+        => ApplyVariant(id, id, ParseVariant);
+
+    private ulong ParseUserIdInternal(ulong id) 
+        => ApplyVariant((uint)id, id, ParseVariant);
+
+    private static ulong ApplyVariant(uint uintHash, ulong ulongHash, uint variant)
+    {
+        return variant switch
         {
-            0 => ~userId | 0xFFFFFFFF00000000,
-            _ => throw new NotSupportedException($"The Epic ID variant '{ParseVariant}' is not supported.")
+            0 => ulongHash,
+            1 => ~uintHash | 0xFFFFFFFF00000000,
+            2 => ~ulongHash,
+            _ => throw new NotSupportedException($"The Epic ID variant '{variant}' is not supported.")
         };
+    }
+
+    private static (uint fullHash, ulong ulongHash) ComputeHashes(EpicId epicId)
+    {
+        const uint seed = 0xFFFFFFFF;
+
+        var wide = epicId.GetAsWideString().AsSpan();
+        var asUint = MemoryMarshal.Cast<byte, uint>(wide);
+
+        var hi = MandarinDeencryptor.Murmur3_32(asUint[..8], seed);
+        var lo = MandarinDeencryptor.Murmur3_32(asUint[^8..], seed);
+
+        var ulongHash = ((ulong)hi << 32) | lo;
+        var fullHash = MandarinDeencryptor.Murmur3_32(asUint, seed);
+
+        return (fullHash, ulongHash);
     }
 }

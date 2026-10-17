@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace MandarinJuiceCore.Infrastructure;
 
@@ -27,6 +27,14 @@ public static class Directories
     /// <returns>A string representing the combined path of the output directory and user identifier.</returns>
     public static string AddUserId(this string outputDirectory, string userId)
         => Path.Combine(outputDirectory, userId);
+
+    /// <summary>
+    /// Removes trailing directory separator characters from a path.
+    /// </summary>
+    /// <param name="path">The path to process.</param>
+    /// <returns>The path without trailing directory separators.</returns>
+    public static string TrimDirectorySeparator(this string path)
+        => path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
     
     /// <summary>
     /// Opens the specified directory in the system's default file explorer, if the directory exists.

@@ -1,4 +1,4 @@
-﻿using MandarinJuiceCore;
+using MandarinJuiceCore;
 using MandarinJuiceCore.GameProfile;
 using MandarinJuiceCore.GamingPlatforms;
 using MandarinJuiceCore.Helpers;
@@ -75,18 +75,16 @@ Console.WriteLine(breakLine);
 
 #endregion
 
-#region MAIN
+// Optional argument: doNotWait (default to true for headless bot execution, allow -w to wait)
+var doNotWait = !arguments.ContainsKey("-w");
 
 // Show HELP if no arguments are provided or if -h is provided
 if (arguments.Count == 0 || arguments.ContainsKey("-h"))
 {
     PrintHelp();
-    ConsoleHelper.PressAnyKeyToExit();
+    if (!doNotWait) ConsoleHelper.PressAnyKeyToExit();
     return;
 }
-
-// Optional argument: doNotWait
-var doNotWait = true;
 
 // Get MODE
 arguments.TryGetValue("-m", out var mode);
@@ -158,7 +156,7 @@ string GetValidatedInputRootPath()
     if (File.Exists(inputRootPath)) inputRootPath = Path.GetDirectoryName(inputRootPath);
     return !Directory.Exists(inputRootPath)
         ? throw new DirectoryNotFoundException($"The provided path '{inputRootPath}' is not a valid directory or does not exist.")
-        : inputRootPath;
+        : inputRootPath.TrimDirectorySeparator();
 }
 
 void LoadGameProfile()
@@ -175,6 +173,7 @@ void LoadGameProfile()
     core.Deencryptor.MandarinSeed = gameProfileManager.GameProfile.MandarinSeed;
     // Set GamingPlatform
     gamingPlatform = GamingPlatformHelper.GetGamingPlatform(gameProfileManager.GameProfile.Platform);
+    gamingPlatform.AppId = gameProfileManager.GameProfile.AppId ?? "0";
     gamingPlatform.ParseVariant = gameProfileManager.GameProfile.ParseVariant;
 }
 
