@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MandarinJuiceWpf.Fonts;
 using MandarinJuiceWpf.Settings;
@@ -29,9 +29,10 @@ public partial class MainWindowViewModel : ObservableValidator
 {
     #region APP_INFO
     public readonly MyAppInfo AppInfo = new("MandarinJuice");
-    public string AppTitle => AppInfo.Name;
-    public static string AppAuthor => MyAppInfo.Author;
+    public string AppTitle => "MandarinJuice PRO MAX (Sablinova fork)";
+    public static string AppAuthor => "Sablinova";
     public static string AppVersion => $"v{MyAppInfo.Version}";
+    public static string ForkBranding => "PRO MAX";
 
     [RelayCommand] private static void VisitAuthorsGithub() => Urls.OpenAuthorsGithub();
     [RelayCommand] private static void VisitProjectsRepo() => Urls.OpenProjectsRepo();

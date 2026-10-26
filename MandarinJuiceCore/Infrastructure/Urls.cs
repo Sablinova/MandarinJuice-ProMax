@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace MandarinJuiceCore.Infrastructure;
 
@@ -7,10 +7,10 @@ namespace MandarinJuiceCore.Infrastructure;
 /// </summary>
 public static class Urls
 {
-    public const string AuthorsGithub = "https://github.com/mi5hmash";
+    public const string AuthorsGithub = "https://github.com/Sablinova";
     public static void OpenAuthorsGithub() => OpenUrl(AuthorsGithub);
 
-    public const string ProjectsRepo = $"{AuthorsGithub}/MandarinJuice";
+    public const string ProjectsRepo = "https://github.com/Sablinova/MandarinJuice-ProMax";
     public static void OpenProjectsRepo() => OpenUrl(ProjectsRepo);
     
     /// <summary>

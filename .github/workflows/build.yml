@@ -73,3 +73,47 @@ jobs:
           else
             gh release upload ${{ github.ref_name }} mandarin-juice-promax-${{ matrix.rid }}.zip --clobber
           fi
+
+  build-gui:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install .NET 10
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+          .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet"
+          "C:\dotnet" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Publish MandarinJuice GUI
+        shell: pwsh
+        run: |
+          dotnet publish MandarinJuiceWpf/MandarinJuiceWpf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false -o ./publish-gui-win-x64
+
+      - name: Zip GUI
+        shell: pwsh
+        run: |
+          Compress-Archive -Path ./publish-gui-win-x64/MandarinJuice.exe -DestinationPath ./mandarin-juice-promax-gui-win-x64.zip
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mandarin-juice-promax-gui-win-x64
+          path: mandarin-juice-promax-gui-win-x64.zip
+
+      - name: Upload Release Asset (Workflow Dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.inputs.release_tag }} mandarin-juice-promax-gui-win-x64.zip --clobber
+
+      - name: Upload Release Asset (Tag Push)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} mandarin-juice-promax-gui-win-x64.zip --clobber

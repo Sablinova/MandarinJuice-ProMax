@@ -1,4 +1,4 @@
-﻿<Window x:Class="MandarinJuiceWpf.Views.Windows.MainWindow"
+<Window x:Class="MandarinJuiceWpf.Views.Windows.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -207,8 +207,8 @@
             <!-- Right Side -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="5*" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Image 
@@ -225,6 +225,22 @@
                                         Base64InnerImage="{Binding ViewModel.GameProfileManager.GameProfile.Base64GpIcon}"
                                         InnerClickCommand="{Binding ViewModel.VisitStoreProductPageCommand}"
                                         d:HideWhenEmpty="False"/>
+                <Border Grid.Row="1"
+                        Background="#201408"
+                        BorderBrush="#FF8C00"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="6,3"
+                        Margin="0,4,0,4"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="{Binding ViewModel.ForkBranding, Mode=OneWay}"
+                               FontWeight="Bold"
+                               FontSize="10"
+                               Foreground="#FFA500"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
                 <Grid Grid.Row="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
